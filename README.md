@@ -2,6 +2,8 @@
 
 ## project structure
 
+From: https://www.kancloud.cn/lhj0702/sockstack_gin/1805358
+
 ```shell
 ├── conf                    #项目配置文件目录
 │   └── config.toml         #大家可以选择自己熟悉的配置文件管理工具包例如：toml、xml、ini等等
