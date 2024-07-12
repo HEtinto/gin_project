@@ -8,16 +8,21 @@ import (
 	"path/filepath"
 )
 
+type Configer interface {
+	GetIPAddress() (string, error)
+	GetPort() (string, error)
+}
+
 type ServerConfig struct {
 	Address string `json:"address"`
-	Port    int    `json:"port"`
+	Port    string `json:"port"`
 }
 
 type Config struct {
 	Server ServerConfig `json:"server"`
 }
 
-func ParseJsonConfig() {
+func ParseJsonConfig() (config Config, err error) {
 	// 获取当前运行目录
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -48,7 +53,6 @@ func ParseJsonConfig() {
 	}
 
 	// 解析 JSON 数据到 Config 结构体
-	var config Config
 	err = json.Unmarshal(data, &config)
 	if err != nil {
 		fmt.Println("Error unmarshalling JSON:", err)
@@ -56,6 +60,18 @@ func ParseJsonConfig() {
 	}
 
 	// 打印解析后的数据
-	fmt.Printf("Server Address: %s\n", config.Server.Address)
-	fmt.Printf("Server Port: %d\n", config.Server.Port)
+	fmt.Printf("ParseJsonConfig Server Address: %s\n", config.Server.Address)
+	fmt.Printf("ParseJsonConfig Server Port: %s\n", config.Server.Port)
+
+	return
+}
+
+// 获取ip
+func (config *Config) GetIPAddress() (string, error) {
+	return config.Server.Address, nil
+}
+
+// 获取端口
+func (config *Config) GetPort() (string, error) {
+	return config.Server.Port, nil
 }
