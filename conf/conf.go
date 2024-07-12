@@ -1,4 +1,4 @@
-package main
+package conf
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ type Config struct {
 	Server ServerConfig `json:"server"`
 }
 
-func main() {
+func ParseJsonConfig() {
 	// 获取当前运行目录
 	currentDir, err := os.Getwd()
 	if err != nil {

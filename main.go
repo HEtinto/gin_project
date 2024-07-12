@@ -13,10 +13,13 @@ package main
 import (
 	"net/http"
 
+	"conf"
+
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	conf.ParseJsonConfig()
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
