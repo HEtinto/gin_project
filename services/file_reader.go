@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"regexp"
 )
 
 type Reader struct {
@@ -53,10 +54,13 @@ func (r *Reader) Close() error {
 // Read file by line
 func (r *Reader) ReadLines() (sc *StringChannel, err error) {
 	sc = NewStringChannel()
+	// 将文件指针重置到文件开头
+	r.file.Seek(0, io.SeekStart)
 	reader := bufio.NewReader(r.file)
 	go func() {
 		defer func() {
-			sc.strings <- ""
+			fmt.Println("done info send.")
+			close(sc.strings)
 			sc.done <- true
 		}()
 		for {
@@ -65,10 +69,10 @@ func (r *Reader) ReadLines() (sc *StringChannel, err error) {
 				sc.strings <- line
 			} else {
 				if err == io.EOF {
-					break
+					break // 当遇到文件结束时跳出循环
 				} else {
 					fmt.Println("Error reading line", err)
-					break
+					break // 遇到其他错误时也跳出循环
 				}
 			}
 		}
@@ -84,7 +88,17 @@ func (r *Reader) FilterLines(pattern string) (strSlice []string, err error) {
 			if sc.IsClosed() {
 				break
 			}
-			strSlice = append(strSlice, <-sc.strings)
+			// re := regexp.MustCompile(pattern)
+			str := <-sc.strings
+			matched, err := regexp.MatchString(pattern, str)
+			if err != nil {
+				fmt.Printf("Error matching regex: %v\n", err)
+				continue
+			}
+			fmt.Printf("matched: %v\n", matched)
+			if matched {
+				strSlice = append(strSlice, str)
+			}
 		}
 	}
 	return strSlice, err

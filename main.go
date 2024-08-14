@@ -21,8 +21,10 @@ import (
 )
 
 var watcher *services.FileWatcher
+var reader *services.Reader
 
 func main() {
+	//Watch file
 	watcher = services.NewFileWatcher()
 	if err := watcher.Open("test.log"); err != nil {
 		fmt.Println("Error opening watcher:", err)
@@ -54,6 +56,32 @@ func main() {
 			"message": logInfo,
 		})
 	})
+
+	// ReadFile
+	reader, err := services.NewReader("logs/engine.log")
+	if err != nil {
+		fmt.Println("Error reading file:", err)
+		return
+	}
+	defer reader.Close()
+
+	r.Use(func(c *gin.Context) {
+		c.Set("filter", reader)
+		c.Next()
+	})
+
+	r.GET("/filter", func(c *gin.Context) {
+		w := c.MustGet("filter").(*services.Reader)
+		filterString, err := w.FilterLines("ERROR")
+		if err != nil {
+			fmt.Println("Error filter lines:", err)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"message": filterString,
+		})
+	})
+	// Set Port and run service.
 	port, _ := configer.GetPort()
 	r.Run(":" + port) // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
 }
