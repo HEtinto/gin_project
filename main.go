@@ -24,38 +24,9 @@ var watcher *services.FileWatcher
 var reader *services.Reader
 
 func main() {
-	//Watch file
-	watcher = services.NewFileWatcher()
-	if err := watcher.Open("test.log"); err != nil {
-		fmt.Println("Error opening watcher:", err)
-		return
-	}
-	defer watcher.Close()
-	logInfo, err := watcher.GetOneNewLine()
-	if err != nil {
-		fmt.Println("Error get log")
-	}
-	fmt.Println("Log infoxx:", logInfo)
 	configer, _ := conf.ParseJsonConfig()
 	fmt.Println("Configer:", configer)
 	r := gin.Default()
-	// add watcher to gin
-	r.Use(func(c *gin.Context) {
-		c.Set("watcher", watcher)
-		c.Next()
-	})
-
-	// Example GET request
-	r.GET("/ping", func(c *gin.Context) {
-		w := c.MustGet("watcher").(*services.FileWatcher)
-		logInfo, err := w.GetOneNewLine()
-		if err != nil {
-			fmt.Println("Error get log")
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"message": logInfo,
-		})
-	})
 
 	// ReadFile
 	reader, err := services.NewReader("logs/engine.log")
@@ -70,9 +41,12 @@ func main() {
 		c.Next()
 	})
 
-	r.GET("/filter", func(c *gin.Context) {
+	r.GET("/filter/:pattern", func(c *gin.Context) {
+		// 获取参数
+		pattern := c.Param("pattern")
+		fmt.Printf("/filter/ get param pattern:%+v\n", pattern)
 		w := c.MustGet("filter").(*services.Reader)
-		filterString, err := w.FilterLines("ERROR")
+		filterString, err := w.FilterLines(pattern)
 		if err != nil {
 			fmt.Println("Error filter lines:", err)
 			return

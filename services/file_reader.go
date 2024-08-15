@@ -9,7 +9,8 @@ import (
 )
 
 type Reader struct {
-	file *os.File
+	fileName string
+	file     *os.File
 }
 
 type StringChannel struct {
@@ -36,11 +37,17 @@ func (c *StringChannel) IsClosed() bool {
 
 // NewReader 新建一个Reader
 func NewReader(filePath string) (*Reader, error) {
-	file, err := os.Open(filePath)
+	return &Reader{fileName: filePath}, nil
+}
+
+// Open file 打开文件
+func (r *Reader) Open() error {
+	file, err := os.Open(r.fileName)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &Reader{file: file}, nil
+	r.file = file
+	return nil
 }
 
 // Close file handles
@@ -82,6 +89,12 @@ func (r *Reader) ReadLines() (sc *StringChannel, err error) {
 
 // Filter the file lines by regex pattern
 func (r *Reader) FilterLines(pattern string) (strSlice []string, err error) {
+	// 打开文件
+	if err := r.Open(); err != nil {
+		fmt.Println("File open failed")
+		return nil, err
+	}
+	defer r.Close() // 关闭文件
 	sc, err := r.ReadLines()
 	if err == nil {
 		for {
@@ -95,7 +108,7 @@ func (r *Reader) FilterLines(pattern string) (strSlice []string, err error) {
 				fmt.Printf("Error matching regex: %v\n", err)
 				continue
 			}
-			fmt.Printf("matched: %v\n", matched)
+			// fmt.Printf("matched: %v\n", matched)
 			if matched {
 				strSlice = append(strSlice, str)
 			}

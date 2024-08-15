@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Configer interface {
@@ -18,8 +19,13 @@ type ServerConfig struct {
 	Port    string `json:"port"`
 }
 
+type LogFilePathConfig struct {
+	Path string `json:"path"`
+}
+
 type Config struct {
-	Server ServerConfig `json:"server"`
+	Server      ServerConfig      `json:"server"`
+	LogFilePath LogFilePathConfig `json:"logFilePath"`
 }
 
 func ParseJsonConfig() (config Config, err error) {
@@ -62,6 +68,7 @@ func ParseJsonConfig() (config Config, err error) {
 	// 打印解析后的数据
 	fmt.Printf("ParseJsonConfig Server Address: %s\n", config.Server.Address)
 	fmt.Printf("ParseJsonConfig Server Port: %s\n", config.Server.Port)
+	fmt.Printf("ParseJsonConfig LogFilePath: %s\n", config.LogFilePath.Path)
 
 	return
 }
@@ -74,4 +81,10 @@ func (config *Config) GetIPAddress() (string, error) {
 // 获取端口
 func (config *Config) GetPort() (string, error) {
 	return config.Server.Port, nil
+}
+
+// 获取日志路径
+func (config *Config) GetLogFilePath() ([]string, error) {
+	items := strings.Split(config.LogFilePath.Path, ",")
+	return items, nil
 }
